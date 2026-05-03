@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水怪</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080c10;--bg2:#0d1318;--bg3:#111820;
+  --border:#1e2d3d;--border2:#2a3f52;
+  --cyan:#4fc3d0;--cyan2:#7ee8f2;
+  --amber:#e0a839;--amber2:#f5c86a;
+  --green:#3dba6e;--red:#d95555;--purple:#b07cf0;
+  --gray:#4a5c6a;--gray2:#6a7f8e;
+  --white:#c8dce8;--dim:#1a2535;
+  --fp:'DotGothic16',monospace;
+  --fb:'Noto Sans TC','DotGothic16',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--fp);overflow:hidden;}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent 0px,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);
+}
+#app{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:12px;}
+#shell{
+  width:100%;max-width:680px;height:100%;max-height:780px;
+  background:var(--bg2);border:1px solid var(--border2);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* TOP BAR */
+#topbar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--border);
+  background:var(--bg);flex-shrink:0;
+}
+#topbar-title{font-size:15px;letter-spacing:3px;color:var(--cyan);}
+#topbar-node{font-size:11px;color:var(--amber);margin-left:6px;}
+#topbar-right{margin-left:auto;display:flex;gap:6px;}
+.tb-btn{
+  background:none;border:1px solid var(--border2);color:var(--gray2);
+  font-family:var(--fp);font-size:11px;padding:3px 9px;cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.tb-btn:hover{color:var(--white);border-color:var(--cyan);}
+
+@keyframes blink{50%{opacity:0;}}
+.blink{animation:blink 1s step-end infinite;}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;padding:20px;}
+.screen.active{display:flex;}
+
+/* HOME */
+#home-logo{
+  text-align:center;padding:24px 0 20px;
+  border:1px solid var(--border);background:var(--bg);
+  margin-bottom:18px;position:relative;
+}
+#home-logo h1{
+  font-family:var(--fp);font-size:34px;letter-spacing:14px;
+  color:var(--cyan2);
+}
+#home-logo .tagline{
+  font-family:var(--fb);font-size:13px;color:var(--gray2);
+  margin-top:16px;line-height:2.1;letter-spacing:.5px;
+}
+.corner{position:absolute;font-size:11px;color:var(--border2);line-height:1;}
+.corner.tl{top:5px;left:7px;}.corner.tr{top:5px;right:7px;}
+.corner.bl{bottom:5px;left:7px;}.corner.br{bottom:5px;right:7px;}
+
+.prog-row{margin-bottom:16px;}
+.prog-label{font-size:11px;color:var(--gray);margin-bottom:4px;letter-spacing:1px;}
+.prog-track{background:var(--dim);height:5px;}
+.prog-fill{background:var(--cyan);height:5px;transition:width .5s ease;}
+.prog-sub{font-size:11px;color:var(--gray);margin-top:3px;}
+
+.menu-btn{
+  display:block;width:100%;background:var(--bg);
+  border:1px solid var(--border2);color:var(--cyan);
+  font-family:var(--fp);font-size:14px;
+  padding:11px 16px;text-align:left;cursor:pointer;
+  margin-bottom:8px;transition:background .12s,border-color .12s;
+  letter-spacing:1px;
+}
+.menu-btn::before{content:'▶  ';color:var(--border2);}
+.menu-btn:hover{background:var(--dim);border-color:var(--cyan);}
+.menu-btn:hover::before{color:var(--cyan);}
+.menu-btn.am{color:var(--amber);}
+.menu-btn.am:hover{border-color:var(--amber);}
+.menu-btn.dim{color:var(--gray);border-color:var(--border);}
+
+/* GAME */
+#textbox{
+  background:var(--bg);border:1px solid var(--border);
+  padding:16px 18px;flex:1;overflow-y:auto;
+  margin-bottom:14px;line-height:2;
+  font-family:var(--fb);font-size:15px;
+}
+#textbox-loc{
+  font-family:var(--fp);font-size:11px;color:var(--amber);
+  letter-spacing:2px;padding-bottom:10px;margin-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+#typeout{white-space:pre-wrap;}
+#typecursor{
+  display:inline-block;width:9px;height:16px;
+  background:var(--cyan);vertical-align:middle;margin-left:2px;
+  animation:blink .65s step-end infinite;
+}
+#choices{flex-shrink:0;}
+.choice-btn{
+  display:block;width:100%;background:var(--bg);
+  border:1px solid var(--border2);color:var(--white);
+  font-family:var(--fb);font-size:14px;
+  padding:10px 16px;text-align:left;cursor:pointer;
+  margin-bottom:7px;transition:background .12s,border-color .12s,color .12s;
+  letter-spacing:.5px;line-height:1.5;
+}
+.choice-btn::before{content:'◈  ';color:var(--border2);font-size:12px;}
+.choice-btn:hover{background:var(--dim);border-color:var(--cyan2);color:var(--cyan2);}
+.choice-btn:hover::before{color:var(--cyan2);}
+
+/* END */
+#end-banner{
+  border:1px solid var(--amber);background:var(--bg);
+  padding:20px;text-align:center;margin-bottom:14px;
+}
+#end-title{font-family:var(--fp);font-size:16px;color:var(--amber2);letter-spacing:2px;margin-bottom:8px;}
+#end-ach{font-family:var(--fp);font-size:12px;color:var(--purple);letter-spacing:1px;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-card{background:var(--bg3);border:1px solid var(--border);padding:14px 10px;text-align:center;}
+.stat-lbl{font-family:var(--fp);font-size:10px;color:var(--gray);letter-spacing:1px;margin-bottom:8px;}
+.stat-val{font-family:var(--fp);font-size:26px;color:var(--cyan2);}
+.stat-sub{font-size:10px;color:var(--gray);margin-top:4px;font-family:var(--fp);}
+#end-newmsg{font-family:var(--fp);font-size:12px;text-align:center;margin-bottom:14px;min-height:18px;letter-spacing:1px;}
+
+/* ACHIEVEMENTS */
+#ach-scroll{flex:1;overflow-y:auto;}
+.ach-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--bg);border:1px solid var(--border);
+  padding:11px 14px;margin-bottom:7px;
+}
+.ach-item.locked{opacity:.38;}
+.ach-marker{
+  font-family:var(--fp);font-size:11px;min-width:22px;
+  text-align:center;color:var(--border2);padding-top:2px;
+  flex-shrink:0;
+}
+.ach-marker.done{color:var(--green);}
+.ach-name{font-family:var(--fp);font-size:13px;color:var(--amber2);}
+.ach-sub{font-family:var(--fb);font-size:11px;color:var(--gray2);margin-top:3px;}
+.ach-badge{margin-left:auto;font-family:var(--fp);font-size:10px;color:var(--green);letter-spacing:1px;padding-top:2px;flex-shrink:0;}
+
+/* MAP */
+#map-wrap{flex:1;overflow:auto;background:var(--bg);border:1px solid var(--border);}
+#map-svg{display:block;}
+
+.sec-title{
+  font-family:var(--fp);font-size:12px;letter-spacing:2px;color:var(--amber);
+  border-left:3px solid var(--amber);padding-left:8px;margin-bottom:12px;
+}
+.map-hint{font-size:11px;color:var(--gray);margin-bottom:8px;font-family:var(--fp);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+</style>
+</head>
+<body>
+<div id="app"><div id="shell">
+
+  <div id="topbar">
+    <span id="topbar-title">水 怪</span>
+    <span id="topbar-node"></span>
+    <div id="topbar-right">
+      <button class="tb-btn" id="btn-menu" style="display:none" onclick="showHome()">MENU</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div id="home-logo">
+      <span class="corner tl">╔</span><span class="corner tr">╗</span>
+      <span class="corner bl">╚</span><span class="corner br">╝</span>
+      <h1>水 怪</h1>
+      <div class="tagline">
+        你不記得你是誰，也不知道自己身在何處。<br>
+        但是面前有一個謎樣的洞穴。<br>
+        你願意待在原地等死？<br>
+        還是走入洞穴搏得一絲生機？<br>
+        不管你的選擇為何，要當心身後的可疑聲音……
+      </div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-label">結局收集進度</div>
+      <div class="prog-track"><div class="prog-fill" id="home-bar" style="width:0%"></div></div>
+      <div class="prog-sub" id="home-sub">0 / 11 結局已解鎖</div>
+    </div>
+    <button class="menu-btn" onclick="startGame()">開始冒險</button>
+    <button class="menu-btn am" onclick="showAch()">成就 &amp; 已解鎖結局</button>
+    <button class="menu-btn am" onclick="showMap()">劇情路線圖</button>
+    <div style="margin-top:auto;font-size:11px;color:var(--border2);text-align:center;padding-top:12px;">
+      ★ &nbsp;共有 11 個結局等待探索&nbsp; ★
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="screen-game" class="screen">
+    <div id="textbox">
+      <div id="textbox-loc"></div>
+      <div id="typeout"></div><span id="typecursor"></span>
+    </div>
+    <div id="choices"></div>
+  </div>
+
+  <!-- END -->
+  <div id="screen-end" class="screen">
+    <div id="end-banner">
+      <div id="end-title"></div>
+      <div id="end-ach"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-lbl">首次到達此結局</div>
+        <div class="stat-val" id="stat-first">—</div>
+        <div class="stat-sub">的玩家首個結局是這個</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">此結局解鎖率</div>
+        <div class="stat-val" id="stat-unlock">—</div>
+        <div class="stat-sub">的遊玩次數曾解鎖此結局</div>
+      </div>
+    </div>
+    <div id="end-newmsg"></div>
+    <button class="menu-btn" onclick="startGame()">再來一次</button>
+    <button class="menu-btn am" onclick="showAch()">查看所有結局</button>
+    <button class="menu-btn am" onclick="showMap()">劇情路線圖</button>
+    <button class="menu-btn dim" onclick="showHome()">返回首頁</button>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div id="screen-ach" class="screen">
+    <div class="sec-title" id="ach-header">成就 &amp; 結局</div>
+    <div id="ach-scroll"></div>
+  </div>
+
+  <!-- MAP -->
+  <div id="screen-map" class="screen">
+    <div class="sec-title">劇情路線圖</div>
+    <div class="map-hint">
+      <span style="color:var(--cyan)">■</span> 已解鎖節點 &nbsp;
+      <span style="color:var(--amber)">■</span> 已解鎖結局 &nbsp;
+      <span style="color:var(--border2)">□</span> 未探索
+    </div>
+    <div id="map-wrap"><svg id="map-svg"></svg></div>
+  </div>
+
+</div></div>
+<script>
+// ═══════════════════════════════════════════
+// STORY DATA
+// ═══════════════════════════════════════════
+const N = {
+  n1:{label:'No.1 起點',short:'No.1\n起點',type:'node',
+    text:`「……？」\n你揉著頭，坐起身。你不記得剛才發生了什麼事，也不知道自己在哪裡。\n面前看起來似乎是一個洞穴的入口。\n你回過頭，看了看四周。\n漆黑無比的高聳樹木遮蔽了視線，後方看起來並無退路。\n\n要走入洞穴嗎？`,
+    ch:[{t:'要',n:'n2'},{t:'不要',n:'e1'}]},
+
+  e1:{label:'End 1 迷失',short:'End 1\n迷失',type:'end',eid:'e1',ach:'光速死亡',
+    text:`你打算回頭走入森林中，不去理會面前奇怪的洞穴。\n黑色樹木張牙舞爪地凝視著你，你越往前走，四周愈來愈暗，漸漸地你便什麼都看不見了。\n突然黑暗中傳來似是水滴下的聲音。\n你的臉上有一道溫熱的液體流下，你舔了舔，有血的味道。\n你不敢繼續向前走，站在原地任由恐懼吞噬了你。\n不久後，你失去了意識，再也沒有醒來。`},
+
+  n2:{label:'No.2 岔路',short:'No.2\n岔路',type:'node',
+    text:`洞穴內雖然不至於到伸手不見五指的程度，但也沒有什麼光源，潮濕又陰暗的氛圍使你害怕極了。\n不過在你向前走的同時，你試著回過頭。\n後方早已看不清路了。你只好認命繼續向前走。\n「………」腳步的回音迴盪在洞穴中，但這下似乎有些異樣。\n千古迷宮難題出現了，是岔路。`,
+    ch:[{t:'向左走',n:'n4'},{t:'向右走',n:'n3'}]},
+
+  n3:{label:'No.3 彎路',short:'No.3\n彎路',type:'node',
+    text:`你選擇了右邊的道路。\n不知道為什麼，空氣開始冷起來了。\n你揮去那些無端的想法，腳步不停朝道路深處去。\n你腳下的路不知為何逐漸變得難走，地面不時的凸起，雖然知道只是石頭，但它們卻一點一點勾起了你內心的不安。\n「滴答。」你很確定你聽見了什麼。水的聲音。而且仔細聽來，還有水流，以及……遠處有道怪聲，是生物嗎？你想。`,
+    ch:[{t:'回頭逃走',n:'e2'},{t:'繼續向前',n:'n5'}]},
+
+  e2:{label:'End 2 追殺',short:'End 2\n追殺',type:'end',eid:'e2',ach:'面見神話',
+    text:`你拔腿就跑。\n身體本能地受到恐懼驅使飛也似地控制著你的腳往反方向衝。\n只是那道不明生物的叫聲越來越明顯了——你幾乎能確定那是生物，如此深沉的低吼，而且，大概是一群，正朝著你的方向急速逼近。\n你還來不及找地方躲便看到牠們，沒錯，居然是傳說中的尼斯湖水怪，長脖子，水龍般的巨大軀體，嘴中尖牙面對著你襲來！\n你最後的記憶便是那對沾染了鮮血的利牙。`},
+
+  n4:{label:'No.4 直路',short:'No.4\n直路',type:'node',
+    text:`你選擇了左邊的道路。正如你果斷地相信著你的直覺不會有錯。\n你深吸口氣，向前方的未知奔去，不過仔細想想，還是保留體力比較好。\n你最後還是選擇了步行，路徑沒怎麼變，一樣向前。\n只是你感覺道路越來越直了。不太自然，你心想。連兩側石壁都對齊得幾乎平行，簡直詭異至極。而且一邊地上竟開始發出微弱的亮光了，你小心地走過去察看，是個通體透明，帶有一絲藍的神秘晶體。`,
+    ch:[{t:'撿起神秘晶體',n:'e3'},{t:'不作理會，繼續前行',n:'n6'}]},
+
+  n5:{label:'No.5 淹水',short:'No.5\n淹水',type:'node',
+    text:`你沒打算理會那怪聲，只是洞穴生物，沒什麼好怕的，你想，並向前走。\n但水聲越來越明顯了，你懷疑前方有伏流。（河水潛入地下稱伏流）\n地面開始出現水窪。剛開始是如此，接著是水坑，然後漸漸地，地面的積水擴散到前方的道路。\n這下可好，你現在整個小腿都踩進水裡了。\n接下來比岔路還難選，對吧？`,
+    ch:[{t:'繼續向前',n:'n7'},{t:'想辦法找四周有沒有石柱能抱上去',n:'n8'}]},
+
+  e3:{label:'End 3 貪財',short:'End 3\n貪財',type:'end',eid:'e3',ach:'化為永恆',
+    text:`你看著那神秘的藍色晶體，淡淡的亮光竟如此誘人，於是你伸出手，打算把晶體撿起來………\n晶體起初摸起來有些冰涼，而當你將其拿近端看的那一刻，才驚覺不妙。\n藍光開始高頻率的閃爍著。\n你嚇得要把晶體從手裡扔出去，但是來不及了。\n一道璀璨的藍光伴隨宛如煙花般的爆裂聲在空中炸開，多漂亮啊。\n可惜炸開的是你。`},
+
+  n6:{label:'No.6 藍路',short:'No.6\n藍路',type:'node',
+    text:`你決定不理會地上可疑的藍色晶體，繼續前進。\n畢竟這個洞穴並無其他人，就算晶體是什麼價值連城的水晶也沒有任何用途。\n你沿著筆直的通道漫無目的走著，藍光照亮了牆壁的同時，你發現地上的晶體慢慢地堆積、增加了。\n你起初沒有對此多作什麼反應，只是在光線變得更加充足的狀況下，你竟看見地上似有碎片。一些人類骸骨的碎片。`,
+    ch:[{t:'試圖撿起旁邊的小石塊砸向晶體',n:'n9'},{t:'小心地繞開晶體走',n:'e4'}]},
+
+  n7:{label:'No.7 游泳',short:'No.7\n游泳',type:'node',
+    text:`洞穴這種地方難免會有點水。\n當你這麼想著的時候，水已經淹到你的腹部了。\n好在的是，你會游泳。不久後，果然如你所料，洞穴已然被水淹滿，你毫不猶豫潛到水底。\n眼前一片漆黑，你估算自己或許還能撐個十分鐘左右。\n…………很快地，十分鐘過去了。你一邊暗地咒罵著洞穴的長度，然後聽見上方似乎………`,
+    ch:[{t:'繼續游，賭前面有出口',n:'e5'},{t:'先上去換氣，免得等下先死了',n:'e6'}]},
+
+  n8:{label:'No.8 行軍！？',short:'No.8\n行軍!?',type:'node',
+    text:`你不想讓自己碰到太多水，於是望了望附近，希望能找到有沒有什麼能抓附的地方。\n水越淹越高了，幸好你剛找到一個還算穩固的石柱抱了上去。如果你剛才繼續往前走的話勢必要泡水甚至游泳了吧。\n「轟隆隆隆隆」\n「………？」你以為你聽錯了，但是身旁的水竟揚起劇烈的波！你瞬間驚覺不對勁，急忙藏身至石柱後，偷偷觀察——天啊！你不敢相信你的眼睛，一整群尼斯湖水怪行軍似地沿著水道直直衝（游？）去！！`,
+    ch:[{t:'賭一把，跳到水怪身上！？',n:'e7'},{t:'繼續靜觀其變',n:'e8'}]},
+
+  e4:{label:'End 4 腳滑',short:'End 4\n腳滑',type:'end',eid:'e4',ach:'空中花式芭蕾',
+    text:`這些晶體絕對有鬼。經過一番推理，你得出了這番結論。\n你決定小心避開這些可疑的晶體，踮起腳尖，慢慢地，一步，一步………\n你或許以為謹慎能成就所有事，可惜在這一秒你失望了。\n你的腳居然滑了一跤。你來不及站穩，整個人向前撲倒在那堆晶體上！\n糟了。你心想。你聽見它們在你耳邊作響，接著猛地炸裂開來———你被彈飛了，還在空中翻了三圈半，整整三圈半！\n數秒後，你再度重摔在地，哦不，又是那些晶體……`},
+
+  n9:{label:'No.9 一線生機',short:'No.9\n一線生機',type:'node',
+    text:`人，要有勇氣。你看著地上的骸骨碎片，心想他們必然是因為沒膽而死。你大膽地隨手拿起一旁地上的小石塊，猛地朝那些晶體一砸——\n「砰！！！」你嚇得摀住了耳朵，石塊在接觸到晶體的瞬間相互碰撞，發出炸藥般的巨響，隨後石壁竟冒出濃煙！\n過了半晌，你回過神來，吃驚地瞪大眼，洞穴的石壁赫然被炸出一個大洞！！你二話不說，從那洞衝了出去——\n你說不出話。眼前的景象明亮得不可思議。潔白的沙灘、一望無際的海洋，你逃出來了嗎？還來不及思考，你的視線被腳邊一個像是海螺的東西吸引住了。`,
+    ch:[{t:'踩碎它',n:'e9'},{t:'撿起它，吹響',n:'n10'}]},
+
+  e5:{label:'End 5 桃花源',short:'End 5\n桃花源',type:'end',eid:'e5',ach:'二周目！？',
+    text:`人生這種東西，不押上你自己的生命去賭，不就沒意義了嗎？\n你還是相信自己的運氣，沒命地向前游，一直游，一直游，終於前方好像有個像是洞口的地方，彷彿若有光………\n終於你游出了洞外，得救了……你心想，洞外是一片清澈的海水，真漂亮……\n可惜你發現你人在海裡。\n然後你沒氣了。\n你溺水了。\n「…………」醒一醒，還沒結束呢。\n你睜開眼，發現自己正躺在一座謎之小島的沙灘上。`},
+
+  e6:{label:'End 6 交通意外',short:'End 6\n交通意外',type:'end',eid:'e6',ach:'超水',
+    text:`保守起見，還是別賭了吧。生命可不是能這樣拿來亂開玩笑的。\n雖然正上方似乎傳來了一些奇怪的聲響，但那比起氧氣什麼的，並沒有那麼重…………\n你一邊這樣想著，緩緩上浮………\n都說刪節號是語意未完的意思對吧。\n你沒辦法繼續思考下去了。\n因為你剛才在上浮到水面的那秒，頭就給那群從水上狂飆而過的尼斯湖水怪撞沒了。`},
+
+  e7:{label:'End 7 包養',short:'End 7\n包養',type:'end',eid:'e7',ach:'活體觀賞品',
+    text:`你摩拳擦掌，迫不及待想一試這種新型的「水上摩托」———\n你縱身一躍。\n水怪們並沒有發現你。於是你在某隻水怪背上進行了一場驚心動魄的「飆車」。\n然後你現在似乎身處於一個莫名其妙的地方。\n一個寬廣的洞穴。一群繞圈圍著你的水怪。\n「人類。」水怪開口了。\n水怪開口了…………？？？？？？？\n「你以後就待在這裡吧，我們會好好對待你的…………」\n為什麼水怪會說人話啊？？？`},
+
+  e8:{label:'End 8 人體的極限',short:'End 8\n人體極限',type:'end',eid:'e8',ach:'在利牙裡的搖籃',
+    text:`你靜靜等著。忍一時風平浪靜，退一步海闊天空。你倒要看看這水怪軍團到底是有多大陣仗。\n風不斷從耳邊喧囂而過，你抓緊石柱，過了五分鐘………\n………\n你一直維持著同樣的姿勢，你覺得自己跟石柱融為一體。\n十分鐘，二十分鐘，不，其實你根本不知道過了多久。水怪急衝而過，到底是有幾隻？你覺得好像過了一世紀………\n手很痠。你的身體告訴你，該放鬆一下了………\n在鬆開手的同時，你看見了一隻水怪仰頭張開了嘴向你而來。`},
+
+  e9:{label:'End 9 尼斯湖「海怪」',short:'End 9\n尼斯湖海怪',type:'end',eid:'e9',ach:'抖S也不是這樣當的',
+    text:`剛才刻意閃避那藍色晶體這麼久，這下總算是有什麼東西可以踩了！\n你一直壓抑著的衝動此刻莫名爆發了出來，反正就是想找個什麼東西踩——\n你毫不客氣地踏在了那個海螺上。\n「喀啦」\n好舒壓的聲音啊。\n「啪」\n………？\n「啪啪」\n？？？什麼聲音………\n「啪啪啪啪啪」\n似乎是水聲與什麼東西劇烈拍打的聲音。\n「啪啪啪啪啪啪啪啪啪啪啪啪啪啪」\n你沒來由地感到恐懼，這聲音………還有遠方湧起的海浪，很像是海嘯要到來的前兆。\n你想要往後方跑，但是腳動彈不得，因為你看見眼前………\n一群憤怒狂暴的尼斯湖水怪徑直朝你的方向，從海面那邊衝了過來——`},
+
+  n10:{label:'No.10 神奇海螺',short:'No.10\n神奇海螺',type:'node',
+    text:`你從小就聽人說過，海螺是可以吹的。你一直想聽聽它到底能發出什麼樣的聲音，於是你撿起地上的海螺，放到嘴邊猛地一吹——\n「嗚——嗚——！」\n海螺發出一陣奇特的高音，有點像笛子的奏鳴，還挺好聽的，你心想。\n「轟隆隆隆隆隆」\n………？這聲音好像不是很對勁。\n地面。你感覺到你站著的地面在震動。\n「嘩！」\n海面被劈開了，不是，海面………海面冒出了一隻超巨大的尼斯湖水怪。\n你以為你瞎了，正揉了揉眼睛，卻聽到一個低沉的聲音。\n「是你召喚我的嗎，人類？」\n水怪………開口了？？？？？`,
+    ch:[{t:'回答「是」',n:'e10'},{t:'回答「不是」',n:'e11'}]},
+
+  e10:{label:'End 10 開拓新世界',short:'End 10\n開拓新世界',type:'end',eid:'e10',ach:'無盡無限的旅途',
+    text:`水怪露出一個滿意的表情（你也不知道那算是什麼表情），牠低下頭看著你，你不敢迴避牠的視線。\n「很好，人類，我已經在這座島上等了三千年了，現在………」水怪用脖子輕輕一捲，把你放到牠寬闊的頭頂上，「我將帶你環遊世界。坐穩了。」\n你還沒來得及回答，水怪便載著你衝入大海。海風呼嘯而過，你抓緊牠的背，看見夕陽在海面上拉出一條金色的道路。世界在你腳下展開。\n是說，終點在哪啊？`},
+
+  e11:{label:'End 11 這也要說謊？',short:'End 11\n這也要說謊?',type:'end',eid:'e11',ach:'手賤',
+    text:`水怪先是愣了一下，大概吧，牠停滯了約一秒，接著瞪大了眼睛直視著你。\n你看到那雙鮮紅的眼，頓時嚇得腿軟，但是想也知道不可能逃……\n「不是？」牠那低沉的聲音連連引起海面波浪不斷。「你打攪了我三千年的沉眠，連這也要說謊？」\n你張開嘴，原本支支吾吾地想解釋，不過你現在知道不可能了，因為對方也張開了嘴，頓時沙灘和你一起被黑暗吞噬了。`}
+};
+
+const ENDS=['e1','e2','e3','e4','e5','e6','e7','e8','e9','e10','e11'];
+const EDGES=[
+  ['n1','e1'],['n1','n2'],
+  ['n2','n3'],['n2','n4'],
+  ['n3','e2'],['n3','n5'],
+  ['n4','e3'],['n4','n6'],
+  ['n5','n7'],['n5','n8'],
+  ['n6','n9'],['n6','e4'],
+  ['n7','e5'],['n7','e6'],
+  ['n8','e7'],['n8','e8'],
+  ['n9','e9'],['n9','n10'],
+  ['n10','e10'],['n10','e11']
+];
+
+// ═══════════════════════════════════════════
+// STATE  (localStorage)
+// ═══════════════════════════════════════════
+function loadState(){
+  try{
+    const d=JSON.parse(localStorage.getItem('shuiguai')||'{}');
+    return {
+      unlocked: new Set(d.unlocked||[]),
+      ends:     new Set(d.ends||[]),
+      firstEnd: d.firstEnd||null,
+      plays:    d.plays||0,
+      endFirst: d.endFirst||{},
+      endUnlock:d.endUnlock||{}
+    };
+  }catch(e){
+    return {unlocked:new Set(),ends:new Set(),firstEnd:null,plays:0,endFirst:{},endUnlock:{}};
+  }
+}
+function saveState(s){
+  localStorage.setItem('shuiguai',JSON.stringify({
+    unlocked:[...s.unlocked],
+    ends:[...s.ends],
+    firstEnd:s.firstEnd,
+    plays:s.plays,
+    endFirst:s.endFirst,
+    endUnlock:s.endUnlock
+  }));
+}
+
+let S=loadState();
+let visitedPath=[];
+let curNode='n1';
+let typeTimer=null;
+
+// ═══════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const inGame=(id==='screen-game'||id==='screen-end');
+  document.getElementById('btn-menu').style.display=inGame?'':'none';
+}
+
+function showHome(){
+  updateHome();
+  showScreen('screen-home');
+  document.getElementById('topbar-node').textContent='';
+}
+function showAch(){
+  renderAch();
+  showScreen('screen-ach');
+  document.getElementById('topbar-node').textContent='';
+}
+function showMap(){
+  renderMap();
+  showScreen('screen-map');
+  document.getElementById('topbar-node').textContent='';
+}
+
+function updateHome(){
+  const c=S.ends.size;
+  const pct=Math.round(c/11*100);
+  document.getElementById('home-bar').style.width=pct+'%';
+  document.getElementById('home-sub').textContent=c+' / 11 結局已解鎖';
+}
+
+// ═══════════════════════════════════════════
+// GAME FLOW
+// ═══════════════════════════════════════════
+function startGame(){
+  curNode='n1';
+  visitedPath=['n1'];
+  S.unlocked.add('n1');
+  S.plays++;
+  saveState(S);
+  showScreen('screen-game');
+  goNode('n1');
+}
+
+function goNode(id){
+  curNode=id;
+  S.unlocked.add(id);
+  const node=N[id];
+  document.getElementById('topbar-node').textContent='[ '+node.label+' ]';
+  document.getElementById('textbox-loc').textContent='[ '+node.label+' ]';
+  document.getElementById('typeout').textContent='';
+  document.getElementById('choices').innerHTML='';
+  document.getElementById('typecursor').style.display='inline-block';
+
+  if(node.type==='end'){
+    typeText(node.text,()=>handleEnd(id,node));
+  } else {
+    typeText(node.text,()=>showChoices(node.ch));
+  }
+  saveState(S);
+  const tb=document.getElementById('textbox');
+  tb.scrollTop=0;
+}
+
+function typeText(text,cb){
+  if(typeTimer) clearInterval(typeTimer);
+  const el=document.getElementById('typeout');
+  const cursor=document.getElementById('typecursor');
+  el.textContent='';
+  cursor.style.display='inline-block';
+  let i=0;
+  typeTimer=setInterval(()=>{
+    if(i<text.length){
+      el.textContent+=text[i];
+      i++;
+      const tb=document.getElementById('textbox');
+      tb.scrollTop=tb.scrollHeight;
+    } else {
+      clearInterval(typeTimer);
+      typeTimer=null;
+      cursor.style.display='none';
+      if(cb) cb();
+    }
+  },38);
+}
+
+function showChoices(choices){
+  const area=document.getElementById('choices');
+  area.innerHTML='';
+  choices.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.textContent=c.t;
+    btn.onclick=()=>{
+      const nid=c.n;
+      visitedPath.push(nid);
+      S.unlocked.add(nid);
+      goNode(nid);
+    };
+    area.appendChild(btn);
+  });
+}
+
+function handleEnd(eid,node){
+  const wasNew=!S.ends.has(eid);
+  const isFirstEver=!S.firstEnd;
+
+  // record first-end stat
+  if(isFirstEver){
+    S.firstEnd=eid;
+    S.endFirst[eid]=(S.endFirst[eid]||0)+1;
+  }
+  // record unlock
+  if(wasNew){
+    S.endUnlock[eid]=(S.endUnlock[eid]||0)+1;
+    S.ends.add(eid);
+  }
+  saveState(S);
+
+  // compute stats
+  const totalPlays=S.plays;
+  const firstCount=S.endFirst[eid]||0;
+  const unlockCount=S.endUnlock[eid]||0;
+  const firstPct = totalPlays>0 ? Math.round(firstCount/totalPlays*100)+'%' : '—';
+  const unlockPct= totalPlays>0 ? Math.round(unlockCount/totalPlays*100)+'%': '—';
+
+  setTimeout(()=>showEnd(eid,node,firstPct,unlockPct,wasNew),400);
+}
+
+function showEnd(eid,node,firstPct,unlockPct,isNew){
+  document.getElementById('end-title').textContent='～ '+node.label+' ～';
+  document.getElementById('end-ach').textContent='★ 達成成就：'+node.ach+' ★';
+  document.getElementById('stat-first').textContent=firstPct;
+  document.getElementById('stat-unlock').textContent=unlockPct;
+  const msg=document.getElementById('end-newmsg');
+  if(isNew){
+    msg.style.color='var(--green)';
+    msg.textContent='✦ 新結局已解鎖！('+S.ends.size+' / 11)';
+  } else {
+    msg.style.color='var(--gray)';
+    msg.textContent='（已解鎖過此結局）';
+  }
+  showScreen('screen-end');
+}
+
+// ═══════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════
+function renderAch(){
+  document.getElementById('ach-header').textContent='成就 & 結局　'+S.ends.size+' / 11';
+  const list=document.getElementById('ach-scroll');
+  list.innerHTML='';
+  ENDS.forEach((eid,i)=>{
+    const node=N[eid];
+    const done=S.ends.has(eid);
+    const div=document.createElement('div');
+    div.className='ach-item'+(done?'':' locked');
+    div.innerHTML=`
+      <div class="ach-marker${done?' done':''}">` + (done?'■':'□') + `</div>
+      <div>
+        <div class="ach-name">${done?node.label:'???'}</div>
+        <div class="ach-sub">${done?'成就：'+node.ach:'尚未解鎖'}</div>
+      </div>
+      ${done?'<div class="ach-badge">CLEAR</div>':''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════
+function renderMap(){
+  const svg=document.getElementById('map-svg');
+  // layout positions [x, y]
+  const P={
+    n1: [310,30],
+    e1: [110,110], n2:[490,110],
+    n3: [590,195], n4:[330,195],
+    e2: [620,285], n5:[545,285], e3:[160,285], n6:[265,285],
+    n7: [500,375], n8:[610,375], n9:[205,375], e4:[330,375],
+    e5: [460,455], e6:[560,455],
+    e7: [570,455], e8:[640,455],
+    e9: [140,455], n10:[295,455],
+    e10:[240,530], e11:[375,530]
+  };
+  const W=720, H=570;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  svg.innerHTML='';
+
+  const ns='http://www.w3.org/2000/svg';
+  const mk=document.createElementNS(ns,'defs');
+  mk.innerHTML='';
+  svg.appendChild(mk);
+
+  // edges
+  EDGES.forEach(([a,b])=>{
+    const pa=P[a],pb=P[b]; if(!pa||!pb) return;
+    const both=S.unlocked.has(a)&&S.unlocked.has(b);
+    const inPath=visitedPath.includes(a)&&visitedPath.includes(b);
+    const line=document.createElementNS(ns,'line');
+    line.setAttribute('x1',pa[0]); line.setAttribute('y1',pa[1]);
+    line.setAttribute('x2',pb[0]); line.setAttribute('y2',pb[1]);
+    line.setAttribute('stroke',inPath?'#4fc3d0':both?'#2a3f52':'#161e28');
+    line.setAttribute('stroke-width',inPath?2:1);
+    if(!both) line.setAttribute('stroke-dasharray','4 3');
+    svg.appendChild(line);
+  });
+
+  // nodes
+  Object.entries(P).forEach(([id,[x,y]])=>{
+    const node=N[id]; if(!node) return;
+    const unlocked=S.unlocked.has(id);
+    const isEnd=node.type==='end';
+    const inPath=visitedPath.includes(id);
+
+    const g=document.createElementNS(ns,'g');
+    g.setAttribute('transform',`translate(${x},${y})`);
+
+    const bw=unlocked?72:58, bh=unlocked?36:26;
+    const rect=document.createElementNS(ns,'rect');
+    rect.setAttribute('x',-bw/2); rect.setAttribute('y',-bh/2);
+    rect.setAttribute('width',bw); rect.setAttribute('height',bh);
+    rect.setAttribute('rx',0);
+    rect.setAttribute('fill',unlocked?(isEnd?'#1c1000':'#001722'):'#0c1018');
+    rect.setAttribute('stroke',
+      inPath?'#4fc3d0':
+      unlocked?(isEnd?'#e0a839':'#2a3f52'):
+      '#161e28'
+    );
+    rect.setAttribute('stroke-width',inPath?2:1);
+    g.appendChild(rect);
+
+    if(unlocked){
+      const lines=node.short.split('\n');
+      lines.forEach((ln,i)=>{
+        const t=document.createElementNS(ns,'text');
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('dominant-baseline','middle');
+        t.setAttribute('font-size','9');
+        t.setAttribute('font-family','DotGothic16,monospace');
+        const offset=(lines.length===1)?0:(i===0?-7:7);
+        t.setAttribute('y', offset);
+        t.setAttribute('fill',isEnd?'#f5c86a':'#4fc3d0');
+        t.textContent=ln;
+        g.appendChild(t);
+      });
+    } else {
+      const t=document.createElementNS(ns,'text');
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('dominant-baseline','middle');
+      t.setAttribute('font-size','10');
+      t.setAttribute('font-family','DotGothic16,monospace');
+      t.setAttribute('fill','#1e2d3d');
+      t.textContent='???';
+      g.appendChild(t);
+    }
+    svg.appendChild(g);
+  });
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+updateHome();
+</script>
+</body>
+</html>

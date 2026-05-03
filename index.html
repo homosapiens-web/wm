@@ -139,7 +139,7 @@ body::after{
 #end-newmsg{font-family:var(--fp);font-size:12px;text-align:center;margin-bottom:14px;min-height:18px;letter-spacing:1px;}
 
 /* ACHIEVEMENTS */
-#ach-scroll{flex:1;overflow-y:auto;}
+#ach-scroll{flex:1;overflow-y:auto;margin-bottom:10px;}
 .ach-item{
   display:flex;align-items:flex-start;gap:12px;
   background:var(--bg);border:1px solid var(--border);
@@ -157,7 +157,7 @@ body::after{
 .ach-badge{margin-left:auto;font-family:var(--fp);font-size:10px;color:var(--green);letter-spacing:1px;padding-top:2px;flex-shrink:0;}
 
 /* MAP */
-#map-wrap{flex:1;overflow:auto;background:var(--bg);border:1px solid var(--border);}
+#map-wrap{flex:1;overflow:auto;background:var(--bg);border:1px solid var(--border);margin-bottom:10px;}
 #map-svg{display:block;}
 
 .sec-title{
@@ -247,6 +247,7 @@ body::after{
   <div id="screen-ach" class="screen">
     <div class="sec-title" id="ach-header">成就 &amp; 結局</div>
     <div id="ach-scroll"></div>
+    <button class="menu-btn dim" onclick="goBack('ach')">◀  返回</button>
   </div>
 
   <!-- MAP -->
@@ -258,6 +259,7 @@ body::after{
       <span style="color:var(--border2)">□</span> 未探索
     </div>
     <div id="map-wrap"><svg id="map-svg"></svg></div>
+    <button class="menu-btn dim" onclick="goBack('map')" style="margin-top:10px;">◀  返回</button>
   </div>
 
 </div></div>
@@ -327,7 +329,7 @@ const N = {
     text:`你靜靜等著。忍一時風平浪靜，退一步海闊天空。你倒要看看這水怪軍團到底是有多大陣仗。\n風不斷從耳邊喧囂而過，你抓緊石柱，過了五分鐘………\n………\n你一直維持著同樣的姿勢，你覺得自己跟石柱融為一體。\n十分鐘，二十分鐘，不，其實你根本不知道過了多久。水怪急衝而過，到底是有幾隻？你覺得好像過了一世紀………\n手很痠。你的身體告訴你，該放鬆一下了………\n在鬆開手的同時，你看見了一隻水怪仰頭張開了嘴向你而來。`},
 
   e9:{label:'End 9 尼斯湖「海怪」',short:'End 9\n尼斯湖海怪',type:'end',eid:'e9',ach:'抖S也不是這樣當的',
-    text:`剛才刻意閃避那藍色晶體這麼久，這下總算是有什麼東西可以踩了！\n你一直壓抑著的衝動此刻莫名爆發了出來，反正就是想找個什麼東西踩——\n你毫不客氣地踏在了那個海螺上。\n「喀啦」\n好舒壓的聲音啊。\n「啪」\n………？\n「啪啪」\n？？？什麼聲音………\n「啪啪啪啪啪」\n似乎是水聲與什麼東西劇烈拍打的聲音。\n「啪啪啪啪啪啪啪啪啪啪啪啪啪啪」\n你沒來由地感到恐懼，這聲音………還有遠方湧起的海浪，很像是海嘯要到來的前兆。\n你想要往後方跑，但是腳動彈不得，因為你看見眼前………\n一群憤怒狂暴的尼斯湖水怪徑直朝你的方向，從海面那邊衝了過來——`},
+    text:`剛才刻意閃避那藍色晶體這麼久，這下總算是有什麼東西可以踩了！\n你一直壓抑著的衝動此刻莫名爆發了出來，反正就是想找個什麼東西踩——\n你毫不客氣地踏在了那個海螺上。\n「喀啦」\n好舒壓的聲音啊。\n「啪」\n………？\n「啪啪」\n？？？什麼聲音………\n「啪啪啪」\n似乎是水聲與什麼東西劇烈拍打的聲音。\n「啪啪啪啪啪啪啪啪啪啪啪啪啪啪」\n你沒來由地感到恐懼，這聲音………還有遠方湧起的海浪，很像是海嘯要到來的前兆。\n你想要往後方跑，但是腳動彈不得，因為你看見眼前………\n一群憤怒狂暴的尼斯湖水怪徑直朝你的方向，從海面那邊衝了過來——`},
 
   n10:{label:'No.10 神奇海螺',short:'No.10\n神奇海螺',type:'node',
     text:`你從小就聽人說過，海螺是可以吹的。你一直想聽聽它到底能發出什麼樣的聲音，於是你撿起地上的海螺，放到嘴邊猛地一吹——\n「嗚——嗚——！」\n海螺發出一陣奇特的高音，有點像笛子的奏鳴，還挺好聽的，你心想。\n「轟隆隆隆隆隆」\n………？這聲音好像不是很對勁。\n地面。你感覺到你站著的地面在震動。\n「嘩！」\n海面被劈開了，不是，海面………海面冒出了一隻超巨大的尼斯湖水怪。\n你以為你瞎了，正揉了揉眼睛，卻聽到一個低沉的聲音。\n「是你召喚我的嗎，人類？」\n水怪………開口了？？？？？`,
@@ -387,6 +389,8 @@ let S=loadState();
 let visitedPath=[];
 let curNode='n1';
 let typeTimer=null;
+// 記錄從哪個畫面進入成就/地圖
+let prevScreen='screen-home';
 
 // ═══════════════════════════════════════════
 // SCREENS
@@ -400,18 +404,40 @@ function showScreen(id){
 
 function showHome(){
   updateHome();
+  prevScreen='screen-home';
   showScreen('screen-home');
   document.getElementById('topbar-node').textContent='';
 }
+
 function showAch(){
+  // 記住是從哪裡來的
+  const cur=document.querySelector('.screen.active');
+  if(cur && cur.id!=='screen-ach') prevScreen=cur.id;
   renderAch();
   showScreen('screen-ach');
   document.getElementById('topbar-node').textContent='';
 }
+
 function showMap(){
+  // 記住是從哪裡來的
+  const cur=document.querySelector('.screen.active');
+  if(cur && cur.id!=='screen-map') prevScreen=cur.id;
   renderMap();
   showScreen('screen-map');
   document.getElementById('topbar-node').textContent='';
+}
+
+// 返回上一個畫面
+function goBack(from){
+  if(prevScreen==='screen-end'){
+    showScreen('screen-end');
+  } else if(prevScreen==='screen-game'){
+    showScreen('screen-game');
+    document.getElementById('btn-menu').style.display='';
+    if(curNode) document.getElementById('topbar-node').textContent='[ '+N[curNode].label+' ]';
+  } else {
+    showHome();
+  }
 }
 
 function updateHome(){
@@ -430,6 +456,7 @@ function startGame(){
   S.unlocked.add('n1');
   S.plays++;
   saveState(S);
+  prevScreen='screen-game';
   showScreen('screen-game');
   goNode('n1');
 }
@@ -497,19 +524,16 @@ function handleEnd(eid,node){
   const wasNew=!S.ends.has(eid);
   const isFirstEver=!S.firstEnd;
 
-  // record first-end stat
   if(isFirstEver){
     S.firstEnd=eid;
     S.endFirst[eid]=(S.endFirst[eid]||0)+1;
   }
-  // record unlock
   if(wasNew){
     S.endUnlock[eid]=(S.endUnlock[eid]||0)+1;
     S.ends.add(eid);
   }
   saveState(S);
 
-  // compute stats
   const totalPlays=S.plays;
   const firstCount=S.endFirst[eid]||0;
   const unlockCount=S.endUnlock[eid]||0;
@@ -532,6 +556,7 @@ function showEnd(eid,node,firstPct,unlockPct,isNew){
     msg.style.color='var(--gray)';
     msg.textContent='（已解鎖過此結局）';
   }
+  prevScreen='screen-end';
   showScreen('screen-end');
 }
 
@@ -564,7 +589,6 @@ function renderAch(){
 // ═══════════════════════════════════════════
 function renderMap(){
   const svg=document.getElementById('map-svg');
-  // layout positions [x, y]
   const P={
     n1: [310,30],
     e1: [110,110], n2:[490,110],
@@ -586,7 +610,6 @@ function renderMap(){
   mk.innerHTML='';
   svg.appendChild(mk);
 
-  // edges
   EDGES.forEach(([a,b])=>{
     const pa=P[a],pb=P[b]; if(!pa||!pb) return;
     const both=S.unlocked.has(a)&&S.unlocked.has(b);
@@ -600,7 +623,6 @@ function renderMap(){
     svg.appendChild(line);
   });
 
-  // nodes
   Object.entries(P).forEach(([id,[x,y]])=>{
     const node=N[id]; if(!node) return;
     const unlocked=S.unlocked.has(id);

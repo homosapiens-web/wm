@@ -400,6 +400,9 @@ function showScreen(id){
   document.getElementById(id).classList.add('active');
   const inGame=(id==='screen-game'||id==='screen-end');
   document.getElementById('btn-menu').style.display=inGame?'':'none';
+  // 離開遊戲畫面時隱藏跳過按鈕
+  const skipBtn=document.getElementById('btn-skip');
+  if(skipBtn) skipBtn.style.display='none';
 }
 
 function showHome(){
@@ -463,6 +466,7 @@ function startGame(){
 
 function goNode(id){
   curNode=id;
+  const alreadySeen=S.unlocked.has(id);
   S.unlocked.add(id);
   const node=N[id];
   document.getElementById('topbar-node').textContent='[ '+node.label+' ]';
@@ -471,22 +475,59 @@ function goNode(id){
   document.getElementById('choices').innerHTML='';
   document.getElementById('typecursor').style.display='inline-block';
 
-  if(node.type==='end'){
-    typeText(node.text,()=>handleEnd(id,node));
-  } else {
-    typeText(node.text,()=>showChoices(node.ch));
-  }
+  // 顯示或隱藏跳過按鈕（已讀過的節點才顯示）
+  updateSkipBtn(alreadySeen);
+
+  const cb=node.type==='end'?()=>handleEnd(id,node):()=>showChoices(node.ch);
+  typeText(node.text, cb, alreadySeen);
   saveState(S);
   const tb=document.getElementById('textbox');
   tb.scrollTop=0;
 }
 
-function typeText(text,cb){
+function updateSkipBtn(show){
+  let btn=document.getElementById('btn-skip');
+  if(!btn){
+    btn=document.createElement('button');
+    btn.id='btn-skip';
+    btn.className='tb-btn';
+    btn.textContent='SKIP ▶▶';
+    document.getElementById('topbar-right').prepend(btn);
+  }
+  btn.style.display=show?'':'none';
+  btn.onclick=skipText;
+}
+
+// 供外部呼叫的跳過函式
+let skipCb=null;
+function skipText(){
+  if(!typeTimer && !skipCb) return;
+  if(typeTimer){
+    clearInterval(typeTimer);
+    typeTimer=null;
+  }
+  const el=document.getElementById('typeout');
+  const cursor=document.getElementById('typecursor');
+  // 直接填滿全文
+  if(skipCb){
+    const node=N[curNode];
+    el.textContent=node.text;
+    cursor.style.display='none';
+    const tb=document.getElementById('textbox');
+    tb.scrollTop=tb.scrollHeight;
+    const cb=skipCb;
+    skipCb=null;
+    cb();
+  }
+}
+
+function typeText(text,cb,canSkip){
   if(typeTimer) clearInterval(typeTimer);
   const el=document.getElementById('typeout');
   const cursor=document.getElementById('typecursor');
   el.textContent='';
   cursor.style.display='inline-block';
+  skipCb=canSkip?cb:null;
   let i=0;
   typeTimer=setInterval(()=>{
     if(i<text.length){
@@ -498,6 +539,7 @@ function typeText(text,cb){
       clearInterval(typeTimer);
       typeTimer=null;
       cursor.style.display='none';
+      skipCb=null;
       if(cb) cb();
     }
   },38);
